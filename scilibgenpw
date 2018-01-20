@@ -1,0 +1,37 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]
+then
+	echo "Usage : $0 <doi or file with list of dois>"
+	exit 1
+fi
+
+main() 
+{
+token0=$(echo $1 | cut -d "/" -f 1)
+token1=$(echo $1 | cut -d "/" -f 2)
+doi=$token0"%2F"$token1
+burl="https://sci.libgen.pw/item/detail/doi/"
+ref="https://sci.libgen.pw/item/adv/"
+dlurl="https://sci.libgen.pw/download/sci/"
+ua="Mozilla/5.1"
+url="$burl$doi"
+id=$(lynx -dump -listonly -nonumbers -useragent="$ua" "$url" |  grep item | cut --complement -b 1-31)
+ref="$ref$id"
+dlurl="$dlurl$id"
+curl -A $ua -e "$ref" -L -O -J "$dlurl"
+}
+
+if [ -f $1 ] ; then
+	:
+else
+	cnt=1
+fi
+
+if [ -z $cnt ] ; then
+	while read doi ; do
+		main $doi
+	done < $1
+elif [ -n $cnt ] ; then
+	main $1
+fi
